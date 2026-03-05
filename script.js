@@ -804,10 +804,10 @@ async function initializeDashboard() {
     // Normalize role to lowercase format (fix for old uppercase roles)
     const roleToDashboard = {
         'CITIZEN': 'citizen',
-        'AMBULANCE_DRIVER': 'ambulance',
-        'HOSPITAL_STAFF': 'hospital',
-        'TRAFFIC_POLICE': 'traffic',
-        'ADMIN': 'control'
+        'AMBULANCE': 'ambulance',
+        'HOSPITAL': 'hospital',
+        'TRAFFIC': 'traffic',
+        'CONTROL': 'control'
     };
     
     // Convert uppercase roles to lowercase dashboard format
