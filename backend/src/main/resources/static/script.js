@@ -1232,6 +1232,8 @@ function drawStraightLine(origin, destination, color) {
 // ========================================
 
 function renderDashboard(role) {
+    console.log('Rendering dashboard for role:', role);
+    
     // Hide all dashboards
     document.querySelectorAll('.role-dashboard').forEach(dash => {
         dash.classList.add('hidden');
@@ -1245,11 +1247,14 @@ function renderDashboard(role) {
     
     // Show appropriate dashboard
     const dashboardId = role + 'Dashboard';
+    console.log('Looking for dashboard with ID:', dashboardId);
     const dashboard = document.getElementById(dashboardId);
     
     if (dashboard) {
         dashboard.classList.remove('hidden');
         setupRoleSpecificHandlers(role);
+    } else {
+        console.error('Dashboard not found for ID:', dashboardId);
     }
 }
 
@@ -1278,11 +1283,18 @@ function setupRoleSpecificHandlers(role) {
 // ========================================
 
 function setupCitizenDashboard() {
+    console.log('Setting up citizen dashboard...');
+    
     // Show SOS button for citizens only
     const sosButton = document.getElementById('sosButton');
+    console.log('SOS Button found:', sosButton);
+    
     if (sosButton) {
         sosButton.classList.remove('hidden');
         sosButton.addEventListener('click', triggerSOS);
+        console.log('SOS button should now be visible');
+    } else {
+        console.error('SOS button element not found!');
     }
     
     // Initialize chatbot if not already done
@@ -1340,10 +1352,9 @@ async function triggerSOS() {
             body: JSON.stringify(emergencyData)
         });
         
-        console.log('✅ Emergency created successfully!');
+        console.log('✅ Emergency created:', response);
         console.log('   Database ID:', response.id);
         console.log('   Emergency Code:', response.emergencyCode);
-        console.log('   Full response:', response);
         
         // Create emergency object - store BOTH database ID and code
         currentEmergency = {
@@ -1538,6 +1549,26 @@ async function allocateAmbulance(userLocation, emergencyId) {
 
     // Update marker
     ambulanceMarkers[ambulanceIndex].setIcon(createAmbulanceIcon('busy'));
+    
+    // Update all dashboards with ambulance assignment
+    currentEmergency.status = "ambulance_assigned";
+    updateAllDashboards();
+
+    // Draw route using Directions API (follows roads)
+    drawRouteOnRoads(
+        { lat: bestAmbulance.lat, lng: bestAmbulance.lng },
+        { lat: userLocation.lat, lng: userLocation.lng },
+        '#2ecc71', // green color
+        (routePath) => {
+            // Store the route path for ambulance to follow
+            currentEmergency.routeToPatient = routePath;
+            
+            // Start ambulance movement along the route
+            setTimeout(() => {
+                startAmbulanceMovementAlongRoute(ambulanceIndex, routePath);
+            }, 1000);
+        }
+    );
 
     // Update all relevant dashboards
     updateAllDashboards();
@@ -3069,22 +3100,11 @@ async function drawCompleteEmergencyRoutes(emergency) {
     // ROUTE 1: Ambulance → Patient (Green)
     if (ambulanceLocation) {
         console.log('🗺️ Drawing Route 1: Ambulance → Patient (GREEN)');
-        const ambulanceIndex = ambulances.findIndex(a => a.id === emergency.assignedAmbulanceId);
         drawRouteOnRoads(
             ambulanceLocation,
             patientLocation,
             '#2ecc71',
-            (routePath) => {
-                console.log('   ✅ Route 1 drawn');
-                // Start ambulance movement along the route
-                if (ambulanceIndex >= 0 && routePath && routePath.length > 0) {
-                    console.log('🚑 Starting ambulance movement along route...');
-                    currentEmergency.routeToPatient = routePath;
-                    setTimeout(() => {
-                        startAmbulanceMovementAlongRoute(ambulanceIndex, routePath);
-                    }, 1000);
-                }
-            }
+            () => console.log('   ✅ Route 1 drawn')
         );
     }
     

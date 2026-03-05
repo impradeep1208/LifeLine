@@ -1232,6 +1232,8 @@ function drawStraightLine(origin, destination, color) {
 // ========================================
 
 function renderDashboard(role) {
+    console.log('Rendering dashboard for role:', role);
+    
     // Hide all dashboards
     document.querySelectorAll('.role-dashboard').forEach(dash => {
         dash.classList.add('hidden');
@@ -1245,11 +1247,14 @@ function renderDashboard(role) {
     
     // Show appropriate dashboard
     const dashboardId = role + 'Dashboard';
+    console.log('Looking for dashboard with ID:', dashboardId);
     const dashboard = document.getElementById(dashboardId);
     
     if (dashboard) {
         dashboard.classList.remove('hidden');
         setupRoleSpecificHandlers(role);
+    } else {
+        console.error('Dashboard not found for ID:', dashboardId);
     }
 }
 
@@ -1278,11 +1283,18 @@ function setupRoleSpecificHandlers(role) {
 // ========================================
 
 function setupCitizenDashboard() {
+    console.log('Setting up citizen dashboard...');
+    
     // Show SOS button for citizens only
     const sosButton = document.getElementById('sosButton');
+    console.log('SOS Button found:', sosButton);
+    
     if (sosButton) {
         sosButton.classList.remove('hidden');
         sosButton.addEventListener('click', triggerSOS);
+        console.log('SOS button should now be visible');
+    } else {
+        console.error('SOS button element not found!');
     }
     
     // Initialize chatbot if not already done
