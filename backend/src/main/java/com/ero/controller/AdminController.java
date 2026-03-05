@@ -56,6 +56,9 @@ public class AdminController {
                 "('demo-ambulance-003', 'driver3', '" + passwordHash + "', 'AMBULANCE', 'Driver Ravi', '+91-9876543214', 'ravi@ems.com', true, CURRENT_TIMESTAMP), " +
                 "('demo-hospital-001', 'hospital1', '" + passwordHash + "', 'HOSPITAL', 'Dr. Ramesh', '+91-9876543215', 'ramesh@citygen.com', true, CURRENT_TIMESTAMP), " +
                 "('demo-hospital-002', 'hospital2', '" + passwordHash + "', 'HOSPITAL', 'Dr. Priya', '+91-9876543216', 'priya@sevenhills.com', true, CURRENT_TIMESTAMP), " +
+                "('demo-hospital-003', 'carehospital', '" + passwordHash + "', 'HOSPITAL', 'Dr. Kumar', '+91-9876543220', 'kumar@care.com', true, CURRENT_TIMESTAMP), " +
+                "('demo-hospital-004', 'apollohospital', '" + passwordHash + "', 'HOSPITAL', 'Dr. Reddy', '+91-9876543221', 'reddy@apollo.com', true, CURRENT_TIMESTAMP), " +
+                "('demo-hospital-005', 'kimshospital', '" + passwordHash + "', 'HOSPITAL', 'Dr. Sharma', '+91-9876543222', 'sharma@kims.com', true, CURRENT_TIMESTAMP), " +
                 "('demo-control-001', 'admin', '" + passwordHash + "', 'CONTROL', 'Control Admin', '+91-9876543217', 'admin@ero.gov', true, CURRENT_TIMESTAMP) " +
                 "ON CONFLICT (username) DO NOTHING"
             );
@@ -91,6 +94,15 @@ public class AdminController {
             jdbcTemplate.execute(
                 "UPDATE hospitals SET admin_user_id = 'demo-hospital-002' WHERE id = 'hosp-002'"
             );
+            jdbcTemplate.execute(
+                "UPDATE hospitals SET admin_user_id = 'demo-hospital-003' WHERE id = 'hosp-003'"
+            );
+            jdbcTemplate.execute(
+                "UPDATE hospitals SET admin_user_id = 'demo-hospital-004' WHERE id = 'hosp-004'"
+            );
+            jdbcTemplate.execute(
+                "UPDATE hospitals SET admin_user_id = 'demo-hospital-005' WHERE id = 'hosp-005'"
+            );
             
             // Get counts
             Integer hospitalCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM hospitals", Integer.class);
@@ -105,7 +117,7 @@ public class AdminController {
             result.put("trafficPolice", trafficCount);
             result.put("users", userCount);
             result.put("testCredentials", Map.of(
-                "username", "driver1, driver2, driver3, officer1, officer2, hospital1, hospital2, admin",
+                "username", "driver1, driver2, driver3, officer1, officer2, hospital1, hospital2, carehospital, apollohospital, kimshospital, admin",
                 "password", "password123",
                 "note", "Login with any of these usernames and select the matching role"
             ));
