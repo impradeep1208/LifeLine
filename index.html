@@ -56,11 +56,11 @@
                     <label for="role">Select Role</label>
                     <select id="role" name="role" required>
                         <option value="">-- Choose your role --</option>
-                        <option value="citizen">👤 Citizen</option>
-                        <option value="ambulance">🚑 Ambulance Operator</option>
-                        <option value="traffic">👮 Traffic Police</option>
-                        <option value="hospital">🏥 Hospital Admin</option>
-                        <option value="control">🎛️ Control Room Admin</option>
+                        <option value="CITIZEN">👤 Citizen</option>
+                        <option value="AMBULANCE_DRIVER">🚑 Ambulance Driver</option>
+                        <option value="TRAFFIC_POLICE">👮 Traffic Police</option>
+                        <option value="HOSPITAL_STAFF">🏥 Hospital Staff</option>
+                        <option value="ADMIN">🎛️ Admin</option>
                     </select>
                 </div>
 
@@ -85,10 +85,9 @@
 
                 <!-- Quick Login Hints -->
                 <div class="login-hints">
-                    <p class="hint-title">Demo Credentials:</p>
+                    <p class="hint-title">Don't have an account?</p>
                     <div class="hints-grid">
-                        <span class="hint-badge">Any username/password works</span>
-                        <span class="hint-badge">Just select a role</span>
+                        <button type="button" onclick="showRegisterForm()" class="hint-badge" style="cursor: pointer; background: #4CAF50; color: white;">Register Now</button>
                     </div>
                 </div>
             </form>
@@ -106,6 +105,72 @@
     <!-- Login Script -->
     <script>
         const API_BASE_URL = 'https://lifeline-qkav.onrender.com/api';
+        
+        // Show registration form
+        function showRegisterForm() {
+            const username = prompt('Enter username:');
+            if (!username) return;
+            
+            const password = prompt('Enter password:');
+            if (!password) return;
+            
+            const fullName = prompt('Enter full name:');
+            if (!fullName) return;
+            
+            const phone = prompt('Enter phone number:');
+            const email = prompt('Enter email (optional):') || '';
+            
+            const role = prompt('Enter role:\n1. ADMIN\n2. AMBULANCE_DRIVER\n3. HOSPITAL_STAFF\n4. TRAFFIC_POLICE\n5. CITIZEN\n\nEnter number (1-5):');
+            
+            const roleMap = {
+                '1': 'ADMIN',
+                '2': 'AMBULANCE_DRIVER', 
+                '3': 'HOSPITAL_STAFF',
+                '4': 'TRAFFIC_POLICE',
+                '5': 'CITIZEN'
+            };
+            
+            const selectedRole = roleMap[role];
+            if (!selectedRole) {
+                showNotification('Invalid role selection', true);
+                return;
+            }
+            
+            registerUser(username, password, fullName, phone, email, selectedRole);
+        }
+        
+        // Register new user
+        async function registerUser(username, password, fullName, phone, email, role) {
+            try {
+                showNotification('Creating account...', false);
+                
+                const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password,
+                        fullName: fullName,
+                        phone: phone,
+                        email: email,
+                        role: role
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Registration failed');
+                }
+                
+                showNotification('Registration successful! Please login.', false);
+                
+            } catch (error) {
+                console.error('Registration failed:', error);
+                showNotification('Registration failed: ' + error.message, true);
+            }
+        }
         
         // Login Form Handler
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
@@ -146,17 +211,9 @@
                 const user = data.user || data;
                 const token = data.token;
                 
-                // Verify role matches - convert frontend role to backend format
-                const roleMap = {
-                    'citizen': 'CITIZEN',
-                    'ambulance': 'AMBULANCE',
-                    'traffic': 'TRAFFIC',
-                    'hospital': 'HOSPITAL',
-                    'control': 'CONTROL'
-                };
-                
+                // Verify role matches
                 const userRole = user.role || data.role;
-                if (userRole !== roleMap[role]) {
+                if (userRole !== role) {
                     showNotification(`Invalid role! This account is registered as ${userRole}`, true);
                     return;
                 }
