@@ -57,10 +57,10 @@
                     <select id="role" name="role" required>
                         <option value="">-- Choose your role --</option>
                         <option value="CITIZEN">👤 Citizen</option>
-                        <option value="AMBULANCE_DRIVER">🚑 Ambulance Driver</option>
-                        <option value="TRAFFIC_POLICE">👮 Traffic Police</option>
-                        <option value="HOSPITAL_STAFF">🏥 Hospital Staff</option>
-                        <option value="ADMIN">🎛️ Admin</option>
+                        <option value="AMBULANCE">🚑 Ambulance Driver</option>
+                        <option value="TRAFFIC">👮 Traffic Police</option>
+                        <option value="HOSPITAL">🏥 Hospital Staff</option>
+                        <option value="CONTROL">🎛️ Admin</option>
                     </select>
                 </div>
 
@@ -123,10 +123,10 @@
             const role = prompt('Enter role:\n1. ADMIN\n2. AMBULANCE_DRIVER\n3. HOSPITAL_STAFF\n4. TRAFFIC_POLICE\n5. CITIZEN\n\nEnter number (1-5):');
             
             const roleMap = {
-                '1': 'ADMIN',
-                '2': 'AMBULANCE_DRIVER', 
-                '3': 'HOSPITAL_STAFF',
-                '4': 'TRAFFIC_POLICE',
+                '1': 'CONTROL',
+                '2': 'AMBULANCE', 
+                '3': 'HOSPITAL',
+                '4': 'TRAFFIC',
                 '5': 'CITIZEN'
             };
             
@@ -228,10 +228,10 @@
                 // Map backend roles to dashboard roles
                 const roleToDashboard = {
                     'CITIZEN': 'citizen',
-                    'AMBULANCE_DRIVER': 'ambulance',
-                    'HOSPITAL_STAFF': 'hospital',
-                    'TRAFFIC_POLICE': 'traffic',
-                    'ADMIN': 'control'
+                    'AMBULANCE': 'ambulance',
+                    'HOSPITAL': 'hospital',
+                    'TRAFFIC': 'traffic',
+                    'CONTROL': 'control'
                 };
                 
                 const dashboardRole = roleToDashboard[role] || role.toLowerCase();
