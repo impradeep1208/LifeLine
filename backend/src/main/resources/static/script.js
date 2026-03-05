@@ -28,6 +28,7 @@ let directionsRenderers = []; // Store direction renderers
 let directionsService; // Google Directions Service
 let currentEmergency = null;
 let movementInterval = null;
+let currentEmergencyWithRoutes = null; // Track which emergency has routes drawn
 let currentUserRole = null;
 let ambulanceDashboardMarker = null; // Ambulance marker for ambulance dashboard
 let completedEmergencyResetScheduled = false; // Flag to prevent multiple reset timeouts
@@ -2430,6 +2431,7 @@ async function fetchAmbulanceAssignment() {
             routePolylines = [];
             directionsRenderers.forEach(renderer => renderer.setMap(null));
             directionsRenderers = [];
+            currentEmergencyWithRoutes = null; // Reset route tracking
         }
     } catch (error) {
         console.error('❌ [Ambulance Polling] Failed to fetch assignment:', error);
@@ -3112,6 +3114,24 @@ async function drawCompleteEmergencyRoutes(emergency) {
         return;
     }
     
+    // Check if routes for this emergency are already drawn
+    if (currentEmergencyWithRoutes === emergency.id && directionsRenderers.length > 0) {
+        console.log('✅ Routes already drawn for emergency', emergency.emergencyCode, '- skipping redraw to prevent randomness');
+        return;
+    }
+    
+    // Clear old routes if switching to a different emergency
+    if (currentEmergencyWithRoutes !== emergency.id) {
+        console.log('🗺️ Clearing old routes (switching from emergency', currentEmergencyWithRoutes, 'to', emergency.id, ')');
+        directionsRenderers.forEach(renderer => renderer.setMap(null));
+        directionsRenderers = [];
+        routePolylines.forEach(polyline => polyline.setMap(null));
+        routePolylines = [];
+    }
+    
+    // Mark this emergency as having routes
+    currentEmergencyWithRoutes = emergency.id;
+    
     // Load data if not already loaded
     if (ambulances.length === 0) await loadAmbulances();
     if (hospitals.length === 0) await loadHospitals();
@@ -3350,6 +3370,7 @@ function resetEmergency() {
         renderer.setMap(null);
     });
     directionsRenderers = [];
+    currentEmergencyWithRoutes = null; // Reset route tracking
     
     // Reset ambulance status
     ambulances.forEach((ambulance, index) => {
