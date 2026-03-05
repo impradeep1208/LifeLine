@@ -1,5 +1,6 @@
 package com.ero.controller;
 
+import com.ero.service.EmergencyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -17,6 +18,7 @@ public class AdminController {
 
     private final JdbcTemplate jdbcTemplate;
     private final PasswordEncoder passwordEncoder;
+    private final EmergencyService emergencyService;
 
     @PostMapping("/seed-data")
     public ResponseEntity<?> seedDatabase() {
@@ -121,5 +123,55 @@ public class AdminController {
     @GetMapping("/seed-data")
     public ResponseEntity<?> seedDatabaseGet() {
         return seedDatabase();
+    }
+    
+    @PostMapping("/fix-emergencies")
+    public ResponseEntity<?> fixUnassignedEmergencies() {
+        try {
+            // Find emergencies with CREATED status (unassigned)
+            var unassignedEmergencies = jdbcTemplate.queryForList(
+                "SELECT id, emergency_code, latitude, longitude FROM emergencies WHERE status = 'CREATED' AND assigned_ambulance_id IS NULL"
+            );
+            
+            // Find available ambulances
+            var availableAmbulances = jdbcTemplate.queryForList(
+                "SELECT id, vehicle_number FROM ambulances WHERE status = 'AVAILABLE' ORDER BY id"
+            );
+            
+            int fixed = 0;
+            for (var emergency : unassignedEmergencies) {
+                if (!availableAmbulances.isEmpty()) {
+                    String emergencyId = (String) emergency.get("id");
+                    String ambulanceId = (String) availableAmbulances.get(0).get("id");
+                    
+                    // Assign ambulance using service method
+                    emergencyService.assignAmbulance(emergencyId, ambulanceId);
+                    
+                    // Assign hospital
+                    emergencyService.assignHospital(emergencyId);
+                    
+                    fixed++;
+                    availableAmbulances.remove(0); // Use next ambulance for next emergency
+                }
+            }
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", true);
+            result.put("fixedEmergencies", fixed);
+            result.put("message", "Fixed " + fixed + " unassigned emergencies");
+            
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(500).body(error);
+        }
+    }
+    
+    @GetMapping("/fix-emergencies")
+    public ResponseEntity<?> fixUnassignedEmergenciesGet() {
+        return fixUnassignedEmergencies();
     }
 }
