@@ -2933,7 +2933,22 @@ function updateTrafficDashboard() {
 // HOSPITAL DASHBOARD
 // ========================================
 
-function setupHospitalDashboard() {
+async function setupHospitalDashboard() {
+    // First, fetch the hospital managed by this user
+    try {
+        console.log('🏥 [Hospital] Fetching hospital for user:', currentUserId);
+        const myHospital = await apiCall(`/hospital/admin/${currentUserId}`);
+        console.log('🏥 [Hospital] Found hospital:', myHospital);
+        
+        // Store this hospital as the first in the array for easy access
+        if (myHospital) {
+            hospitals[0] = myHospital;
+            console.log('✅ [Hospital] Set hospitals[0] to:', hospitals[0]);
+        }
+    } catch (error) {
+        console.error('❌ [Hospital] Failed to fetch hospital:', error);
+    }
+    
     const bedIncreaseBtn = document.getElementById('bedIncreaseBtn');
     const bedDecreaseBtn = document.getElementById('bedDecreaseBtn');
     
