@@ -24,6 +24,9 @@ VALUES
 ('demo-ambulance-003', 'driver3', '$2a$10$/rpORbek7gEeyRj0ptpYbeDKayjnEdzoKl3ndQ/308qE81xP1OEYS', 'AMBULANCE', 'Driver Ravi', '+91-9876543214', 'ravi@ems.com', true, CURRENT_TIMESTAMP),
 ('demo-hospital-001', 'hospital1', '$2a$10$/rpORbek7gEeyRj0ptpYbeDKayjnEdzoKl3ndQ/308qE81xP1OEYS', 'HOSPITAL', 'Dr. Ramesh', '+91-9876543215', 'ramesh@citygen.com', true, CURRENT_TIMESTAMP),
 ('demo-hospital-002', 'hospital2', '$2a$10$/rpORbek7gEeyRj0ptpYbeDKayjnEdzoKl3ndQ/308qE81xP1OEYS', 'HOSPITAL', 'Dr. Priya', '+91-9876543216', 'priya@sevenhills.com', true, CURRENT_TIMESTAMP),
+('demo-hospital-003', 'carehospital', '$2a$10$/rpORbek7gEeyRj0ptpYbeDKayjnEdzoKl3ndQ/308qE81xP1OEYS', 'HOSPITAL', 'Dr. Kumar', '+91-9876543220', 'kumar@care.com', true, CURRENT_TIMESTAMP),
+('demo-hospital-004', 'apollohospital', '$2a$10$/rpORbek7gEeyRj0ptpYbeDKayjnEdzoKl3ndQ/308qE81xP1OEYS', 'HOSPITAL', 'Dr. Reddy', '+91-9876543221', 'reddy@apollo.com', true, CURRENT_TIMESTAMP),
+('demo-hospital-005', 'kimshospital', '$2a$10$/rpORbek7gEeyRj0ptpYbeDKayjnEdzoKl3ndQ/308qE81xP1OEYS', 'HOSPITAL', 'Dr. Sharma', '+91-9876543222', 'sharma@kims.com', true, CURRENT_TIMESTAMP),
 ('demo-control-001', 'admin', '$2a$10$/rpORbek7gEeyRj0ptpYbeDKayjnEdzoKl3ndQ/308qE81xP1OEYS', 'CONTROL', 'Control Admin', '+91-9876543217', 'admin@ero.gov', true, CURRENT_TIMESTAMP)
 ON CONFLICT (username) DO NOTHING;
 
@@ -45,6 +48,9 @@ ON CONFLICT (id) DO NOTHING;
 -- Link hospitals to hospital admins
 UPDATE hospitals SET admin_user_id = 'demo-hospital-001' WHERE id = 'hosp-001';
 UPDATE hospitals SET admin_user_id = 'demo-hospital-002' WHERE id = 'hosp-002';
+UPDATE hospitals SET admin_user_id = 'demo-hospital-003' WHERE id = 'hosp-003';
+UPDATE hospitals SET admin_user_id = 'demo-hospital-004' WHERE id = 'hosp-004';
+UPDATE hospitals SET admin_user_id = 'demo-hospital-005' WHERE id = 'hosp-005';
 
 -- Show summary
 SELECT 'Seed data inserted successfully!' as message;
@@ -54,7 +60,7 @@ SELECT COUNT(*) as total_traffic_police FROM traffic_police;
 SELECT COUNT(*) as total_users FROM users;
 
 -- Test Credentials (all passwords: password123)
--- Ambulance: driver1, driver2, driver3
+-- Ambulance: driver2, driver3
 -- Traffic: officer1, officer2
--- Hospital: hospital1, hospital2
+-- Hospital: hospital1, hospital2, carehospital, apollohospital, kimshospital
 -- Admin: admin
