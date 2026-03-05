@@ -225,10 +225,21 @@
                     return;
                 }
                 
+                // Map backend roles to dashboard roles
+                const roleToDashboard = {
+                    'CITIZEN': 'citizen',
+                    'AMBULANCE_DRIVER': 'ambulance',
+                    'HOSPITAL_STAFF': 'hospital',
+                    'TRAFFIC_POLICE': 'traffic',
+                    'ADMIN': 'control'
+                };
+                
+                const dashboardRole = roleToDashboard[role] || role.toLowerCase();
+                
                 // Store user data in localStorage
                 const userData = {
                     username: username,
-                    role: role,
+                    role: dashboardRole,
                     token: token,
                     userId: user.id || data.userId,
                     fullName: user.fullName || user.full_name,
