@@ -7,8 +7,8 @@
 // API CONFIGURATION
 // ========================================
 
-const API_BASE_URL = 'http://localhost:8080/api';
-const WS_BASE_URL = 'ws://localhost:8080/ws';
+const API_BASE_URL = 'https://lifeline-qkav.onrender.com/api';
+const WS_BASE_URL = 'wss://lifeline-qkav.onrender.com/ws';
 
 let authToken = null;
 let stompClient = null;
