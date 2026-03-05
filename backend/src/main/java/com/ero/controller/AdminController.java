@@ -186,4 +186,41 @@ public class AdminController {
     public ResponseEntity<?> fixUnassignedEmergenciesGet() {
         return fixUnassignedEmergencies();
     }
+    
+    @PostMapping("/cleanup-old-emergencies")
+    public ResponseEntity<?> cleanupOldEmergencies() {
+        try {
+            // Mark all DELIVERED emergencies as COMPLETED
+            int deliveredCleaned = jdbcTemplate.update(
+                "UPDATE emergencies SET status = 'COMPLETED' WHERE status = 'DELIVERED'"
+            );
+            
+            // Mark emergencies older than 24 hours as COMPLETED if still active
+            int oldCleaned = jdbcTemplate.update(
+                "UPDATE emergencies SET status = 'COMPLETED' " +
+                "WHERE status IN ('CREATED', 'DISPATCHED', 'EN_ROUTE', 'ARRIVED', 'PATIENT_LOADED', 'TRANSPORTING') " +
+                "AND created_at < NOW() - INTERVAL '24 hours'"
+            );
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", true);
+            result.put("deliveredToCompleted", deliveredCleaned);
+            result.put("oldEmergenciesCleaned", oldCleaned);
+            result.put("totalCleaned", deliveredCleaned + oldCleaned);
+            result.put("message", "Cleaned up " + (deliveredCleaned + oldCleaned) + " old emergencies");
+            
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(500).body(error);
+        }
+    }
+    
+    @GetMapping("/cleanup-old-emergencies")
+    public ResponseEntity<?> cleanupOldEmergenciesGet() {
+        return cleanupOldEmergencies();
+    }
 }

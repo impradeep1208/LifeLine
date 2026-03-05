@@ -283,15 +283,14 @@ public class EmergencyService {
     }
 
     public List<Emergency> getEmergenciesByAmbulance(String ambulanceId) {
-        // Only return active emergencies (exclude COMPLETED and CANCELLED)
+        // Only return truly active emergencies (exclude DELIVERED, COMPLETED and CANCELLED)
         List<Emergency.Status> activeStatuses = Arrays.asList(
             Emergency.Status.CREATED,
             Emergency.Status.DISPATCHED,
             Emergency.Status.EN_ROUTE,
             Emergency.Status.ARRIVED,
             Emergency.Status.PATIENT_LOADED,
-            Emergency.Status.TRANSPORTING,
-            Emergency.Status.DELIVERED
+            Emergency.Status.TRANSPORTING
         );
         return emergencyRepository.findByAssignedAmbulanceIdAndStatusIn(ambulanceId, activeStatuses);
     }
