@@ -187,9 +187,12 @@
             }
             
             try {
-                showNotification('Authenticating...', false);
+                showNotification('Connecting to server... (may take 30-60 seconds on first request)', false);
                 
-                // Call backend login API
+                // Call backend login API with timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second timeout
+                
                 const response = await fetch(`${API_BASE_URL}/auth/login`, {
                     method: 'POST',
                     headers: {
@@ -198,11 +201,15 @@
                     body: JSON.stringify({
                         username: username,
                         password: password
-                    })
+                    }),
+                    signal: controller.signal
                 });
                 
+                clearTimeout(timeoutId);
+                
                 if (!response.ok) {
-                    throw new Error('Invalid credentials');
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || 'Invalid credentials');
                 }
                 
                 const data = await response.json();
@@ -240,7 +247,11 @@
                 
             } catch (error) {
                 console.error('Login failed:', error);
-                showNotification('Login failed! Check your credentials and try again.', true);
+                if (error.name === 'AbortError') {
+                    showNotification('Connection timeout. Backend server may be starting up. Please try again in 30 seconds.', true);
+                } else {
+                    showNotification('Login failed: ' + error.message, true);
+                }
             }
         });
         
