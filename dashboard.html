@@ -515,6 +515,79 @@
 
     </div>
 
+    <!-- Emergency Form Modal -->
+    <div id="emergencyFormModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🆘 Report Emergency</h2>
+                <button class="modal-close" onclick="closeEmergencyForm()">&times;</button>
+            </div>
+            <form id="emergencyForm" class="emergency-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="patientName">Patient Name</label>
+                        <input type="text" id="patientName" placeholder="Enter patient name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="patientPhone">Phone Number</label>
+                        <input type="tel" id="patientPhone" placeholder="Enter phone number" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="emergencyType">Emergency Type</label>
+                        <select id="emergencyType" required>
+                            <option value="">-- Select Type --</option>
+                            <option value="ACCIDENT">🚗 Accident</option>
+                            <option value="HEART_ATTACK">❤️ Heart Attack</option>
+                            <option value="STROKE">🧠 Stroke</option>
+                            <option value="BREATHING">🫁 Breathing Problem</option>
+                            <option value="INJURY">🩹 Severe Injury</option>
+                            <option value="OTHER">⚕️ Other Medical</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="severity">Severity</label>
+                        <select id="severity" required>
+                            <option value="LOW">Low</option>
+                            <option value="MEDIUM" selected>Medium</option>
+                            <option value="HIGH">High</option>
+                            <option value="CRITICAL">Critical</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="emergencyLat">Latitude</label>
+                        <input type="number" id="emergencyLat" step="0.000001" placeholder="17.7200" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="emergencyLng">Longitude</label>
+                        <input type="number" id="emergencyLng" step="0.000001" placeholder="83.2950" required>
+                    </div>
+                </div>
+
+                <div class="quick-location-buttons">
+                    <button type="button" class="quick-btn" onclick="setHospital1Location()">📍 Near Hospital 1</button>
+                    <button type="button" class="quick-btn" onclick="setHospital2Location()">📍 Near Hospital 2</button>
+                    <button type="button" class="quick-btn" onclick="useCurrentLocation()">📍 Use My Location</button>
+                </div>
+
+                <div class="form-group">
+                    <label for="additionalInfo">Additional Information</label>
+                    <textarea id="additionalInfo" rows="3" placeholder="Any additional details..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeEmergencyForm()">Cancel</button>
+                    <button type="submit" class="btn-submit">🚨 Send Emergency SOS</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div id="notificationToast" class="notification-toast hidden"></div>
 

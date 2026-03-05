@@ -1337,108 +1337,165 @@ async function triggerSOS() {
         return;
     }
 
-    // Prompt for optional additional info
-    const additionalInfo = prompt("Any additional emergency details? (Optional - press Cancel to skip):");
+    // Show the emergency form modal
+    document.getElementById('emergencyFormModal').classList.remove('hidden');
+}
 
-    // Simulate user location - random location within 10km of city center
-    const userLocation = {
-        lat: CITY_CENTER.lat + (Math.random() - 0.5) * 0.1,
-        lng: CITY_CENTER.lng + (Math.random() - 0.5) * 0.1
-    };
+// Close emergency form
+function closeEmergencyForm() {
+    document.getElementById('emergencyFormModal').classList.add('hidden');
+    document.getElementById('emergencyForm').reset();
+}
 
-    try {
-        showNotification("Creating emergency...", false);
-        
-        // Create emergency via backend API
-        const emergencyData = {
-            citizenId: currentUserId || 'guest',
-            latitude: userLocation.lat,
-            longitude: userLocation.lng,
-            address: 'Emergency Location',
-            severity: 'MEDIUM',
-            additionalInfo: additionalInfo || null
-        };
-        
-        console.log('🚨 Creating emergency with data:', emergencyData);
-        console.log('   API Endpoint:', API_BASE_URL + '/emergency/create');
-        console.log('   citizenId type:', typeof emergencyData.citizenId);
-        console.log('   citizenId value:', emergencyData.citizenId);
-        
-        const response = await apiCall('/emergency/create', {
-            method: 'POST',
-            body: JSON.stringify(emergencyData)
-        });
-        
-        console.log('✅ Emergency created:', response);
-        console.log('   Database ID:', response.id);
-        console.log('   Emergency Code:', response.emergencyCode);
-        
-        // Create emergency object - store BOTH database ID and code
-        currentEmergency = {
-            id: response.emergencyCode,  // User-facing code for display
-            dbId: response.id,          // Database ID for API calls
-            userLocation: userLocation,
-            timestamp: new Date(),
-            ambulance: null,
-            hospital: null,
-            trafficUnits: [],
-            status: "initiated",
-            additionalInfo: additionalInfo
-        };
-        
-        // Update analytics
-        analytics.totalEmergencies++;
-        
-        // Add user marker
-        userMarker = new google.maps.Marker({
-            position: userLocation,
-            map: map,
-            title: "Emergency Location",
-            icon: {
-                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
-                    `<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50">
-                        <circle cx="25" cy="25" r="23" fill="#e74c3c" stroke="white" stroke-width="3"/>
-                        <text x="25" y="33" font-size="24" text-anchor="middle" fill="white">🆘</text>
-                    </svg>`
-                ),
-                scaledSize: new google.maps.Size(50, 50),
-                anchor: new google.maps.Point(25, 25)
+// Quick location setters
+function setHospital1Location() {
+    document.getElementById('emergencyLat').value = '17.7200';
+    document.getElementById('emergencyLng').value = '83.2950';
+}
+
+function setHospital2Location() {
+    document.getElementById('emergencyLat').value = '17.7306';
+    document.getElementById('emergencyLng').value = '83.3076';
+}
+
+function useCurrentLocation() {
+    // Use browser geolocation or default to random location
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                document.getElementById('emergencyLat').value = position.coords.latitude.toFixed(6);
+                document.getElementById('emergencyLng').value = position.coords.longitude.toFixed(6);
             },
-            animation: google.maps.Animation.BOUNCE
-        });
-        
-        // Update citizen UI
-        updateCitizenUI(currentEmergency.id, userLocation);
-        
-        // Store location in currentEmergency for later use
-        if (!currentEmergency) {
-            currentEmergency = {};
-        }
-        currentEmergency.patientLocation = userLocation;
-        
-        // Center map
-        map.setCenter(userLocation);
-        map.setZoom(15);
-        
-        showNotification("Emergency SOS Activated! Code: " + currentEmergency.id, false);
-        
-        // Start allocation - use database ID for API call
-        setTimeout(() => {
-            allocateAmbulance(userLocation, currentEmergency.dbId);
-        }, 1000);
-        
-    } catch (error) {
-        console.error('Failed to create emergency:', error);
-        
-        // Check for duplicate SOS error
-        if (error.errorCode === 'DUPLICATE_SOS') {
-            showNotification("⚠️ " + (error.errorMessage || "Emergency already reported nearby. Help is on the way!"), true);
-            showToast("Duplicate SOS Detected", error.errorMessage || "Another person has already called for help in your area.", "info");
-        } else {
-            showNotification("Failed to create emergency. Please try again.", true);
-        }
+            () => {
+                // Fallback to random location near city center
+                const randomLat = CITY_CENTER.lat + (Math.random() - 0.5) * 0.1;
+                const randomLng = CITY_CENTER.lng + (Math.random() - 0.5) * 0.1;
+                document.getElementById('emergencyLat').value = randomLat.toFixed(6);
+                document.getElementById('emergencyLng').value = randomLng.toFixed(6);
+            }
+        );
+    } else {
+        // Fallback to random location
+        const randomLat = CITY_CENTER.lat + (Math.random() - 0.5) * 0.1;
+        const randomLng = CITY_CENTER.lng + (Math.random() - 0.5) * 0.1;
+        document.getElementById('emergencyLat').value = randomLat.toFixed(6);
+        document.getElementById('emergencyLng').value = randomLng.toFixed(6);
     }
 }
+
+// Handle emergency form submission
+document.addEventListener('DOMContentLoaded', () => {
+    const emergencyForm = document.getElementById('emergencyForm');
+    if (emergencyForm) {
+        emergencyForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = {
+                patientName: document.getElementById('patientName').value,
+                patientPhone: document.getElementById('patientPhone').value,
+                emergencyType: document.getElementById('emergencyType').value,
+                severity: document.getElementById('severity').value,
+                latitude: parseFloat(document.getElementById('emergencyLat').value),
+                longitude: parseFloat(document.getElementById('emergencyLng').value),
+                additionalInfo: document.getElementById('additionalInfo').value
+            };
+
+            const userLocation = {
+                lat: formData.latitude,
+                lng: formData.longitude
+            };
+
+            try {
+                showNotification("Creating emergency...", false);
+                closeEmergencyForm();
+                
+                // Create emergency via backend API
+                const emergencyData = {
+                    citizenId: currentUserId || 'guest',
+                    latitude: userLocation.lat,
+                    longitude: userLocation.lng,
+                    address: 'Emergency Location',
+                    severity: formData.severity,
+                    additionalInfo: `${formData.emergencyType} - ${formData.patientName} (${formData.patientPhone})${formData.additionalInfo ? ' - ' + formData.additionalInfo : ''}`
+                };
+                
+                console.log('🚨 Creating emergency with data:', emergencyData);
+                
+                const response = await apiCall('/emergency/create', {
+                    method: 'POST',
+                    body: JSON.stringify(emergencyData)
+                });
+                
+                console.log('✅ Emergency created:', response);
+                
+                // Create emergency object
+                currentEmergency = {
+                    id: response.emergencyCode,
+                    dbId: response.id,
+                    userLocation: userLocation,
+                    timestamp: new Date(),
+                    ambulance: null,
+                    hospital: null,
+                    trafficUnits: [],
+                    status: "initiated",
+                    additionalInfo: emergencyData.additionalInfo,
+                    patientName: formData.patientName,
+                    patientPhone: formData.patientPhone,
+                    emergencyType: formData.emergencyType
+                };
+                
+                // Update analytics
+                analytics.totalEmergencies++;
+                
+                // Add user marker
+                userMarker = new google.maps.Marker({
+                    position: userLocation,
+                    map: map,
+                    title: "Emergency Location - " + formData.patientName,
+                    icon: {
+                        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+                            `<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50">
+                                <circle cx="25" cy="25" r="23" fill="#e74c3c" stroke="white" stroke-width="3"/>
+                                <text x="25" y="33" font-size="24" text-anchor="middle" fill="white">🆘</text>
+                            </svg>`
+                        ),
+                        scaledSize: new google.maps.Size(50, 50),
+                        anchor: new google.maps.Point(25, 25)
+                    },
+                    animation: google.maps.Animation.BOUNCE
+                });
+                
+                // Update citizen UI
+                updateCitizenUI(currentEmergency.id, userLocation);
+                
+                // Store location in currentEmergency
+                currentEmergency.patientLocation = userLocation;
+                
+                // Center map
+                map.setCenter(userLocation);
+                map.setZoom(15);
+                
+                showNotification("Emergency SOS Activated! Code: " + currentEmergency.id, false);
+                
+                // Start allocation
+                setTimeout(() => {
+                    allocateAmbulance(userLocation, currentEmergency.dbId);
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Failed to create emergency:', error);
+                
+                if (error.errorCode === 'DUPLICATE_SOS') {
+                    showNotification("⚠️ " + (error.errorMessage || "Emergency already reported nearby. Help is on the way!"), true);
+                    showToast("Duplicate SOS Detected", error.errorMessage || "Another person has already called for help in your area.", "info");
+                } else {
+                    showNotification("Failed to create emergency. Please try again.", true);
+                }
+            }
+        });
+    }
+});
 
 function updateCitizenUI(emergencyId, userLocation) {
     document.getElementById('citizenEmergencyStatus').classList.remove('hidden');
