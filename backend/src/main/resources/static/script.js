@@ -2340,47 +2340,12 @@ async function fetchAmbulanceAssignment() {
         emergencies.forEach(e => console.log(`  - Emergency ${e.emergencyCode}: Status=${e.status}, Hospital=${e.assignedHospitalId || 'none'}`))
         
         const activeEmergency = emergencies.find(e => 
-            ['CREATED', 'DISPATCHED', 'EN_ROUTE', 'ARRIVED', 'PATIENT_LOADED', 'TRANSPORTING', 'COMPLETED'].includes(e.status)
+            ['CREATED', 'DISPATCHED', 'EN_ROUTE', 'ARRIVED', 'PATIENT_LOADED', 'TRANSPORTING'].includes(e.status)
         );
         
         if (activeEmergency) {
             console.log('🚑 [Ambulance Polling] Active emergency found:', activeEmergency.emergencyCode);
             displayAmbulanceAssignment(activeEmergency, ambulance);
-            
-            // If emergency is completed, schedule automatic reset to idle after 5 seconds
-            if (activeEmergency.status === 'COMPLETED' && !completedEmergencyResetScheduled) {
-                console.log('🎉 [Ambulance Polling] Emergency completed! Will reset to idle in 5 seconds');
-                completedEmergencyResetScheduled = true; // Set flag to prevent duplicate timeouts
-                
-                setTimeout(() => {
-                    console.log('🔄 [Ambulance Polling] Resetting completed emergency to idle');
-                    const statusToggle = document.getElementById('statusToggle');
-                    if (statusToggle) {
-                        statusToggle.disabled = false;
-                        statusToggle.style.opacity = '1';
-                        statusToggle.style.cursor = 'pointer';
-                    }
-                    document.getElementById('ambulanceIdle').classList.remove('hidden');
-                    document.getElementById('ambulanceAssignment').classList.add('hidden');
-                    
-                    // Clear ambulance dashboard map markers and routes
-                    if (ambulanceDashboardMarker) {
-                        ambulanceDashboardMarker.setMap(null);
-                        ambulanceDashboardMarker = null;
-                    }
-                    if (userMarker) {
-                        userMarker.setMap(null);
-                        userMarker = null;
-                    }
-                    routePolylines.forEach(polyline => polyline.setMap(null));
-                    routePolylines = [];
-                    directionsRenderers.forEach(renderer => renderer.setMap(null));
-                    directionsRenderers = [];
-                    
-                    // Reset flag for next emergency
-                    completedEmergencyResetScheduled = false;
-                }, 5000);
-            }
         } else {
             console.log('🚑 [Ambulance Polling] No active emergencies - resetting to idle');
             // No active assignment - reset to idle state
