@@ -1452,6 +1452,13 @@ function updateCitizenUI(emergencyId, userLocation) {
 
 async function allocateAmbulance(userLocation, emergencyId) {
     console.log(`🚨 Allocating ambulance for emergency ${emergencyId}...`);
+    
+    // Ensure ambulances are loaded
+    if (ambulances.length === 0) {
+        console.log('⏳ Ambulances not loaded yet, loading now...');
+        await loadAmbulances();
+    }
+    
     console.log(`  Total ambulances: ${ambulances.length}`);
     console.log(`  Ambulance statuses:`, ambulances.map(a => `${a.name}=${a.status}`));
     
@@ -1510,6 +1517,12 @@ async function allocateAmbulance(userLocation, emergencyId) {
             
             // Display hospital on citizen map
             if (hospitalResponse && hospitalResponse.assignedHospitalId) {
+                // Ensure hospitals are loaded
+                if (hospitals.length === 0) {
+                    console.log('⏳ Hospitals not loaded yet, loading now...');
+                    await loadHospitals();
+                }
+                
                 const hospitalId = hospitalResponse.assignedHospitalId;
                 const hospital = hospitals.find(h => h.id === hospitalId);
                 
