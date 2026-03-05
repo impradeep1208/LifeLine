@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>ERO - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dashboard-page">
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+        <div class="nav-left">
+            <span class="nav-logo">🚨</span>
+            <span class="nav-title" data-i18n="appTitle">Emergency Response Optimizer</span>
+        </div>
+        <div class="nav-right">
+            <!-- Language Selector -->
+            <select id="languageSelector" class="language-selector" onchange="setLanguage(this.value)">
+                <option value="en">English</option>
+                <option value="hi">हिंदी</option>
+                <option value="te">తెలుగు</option>
+            </select>
+            
+            <!-- Points Display -->
+            <span class="points-display" id="userPoints">0 pts</span>
+            
+            <!-- Notifications -->
+            <button class="notification-btn" onclick="toggleNotifications()">
+                🔔
+                <span class="notification-badge" id="notificationBadge">0</span>
+            </button>
+            
+            <span class="user-badge" id="userRole">Loading...</span>
+            <span class="user-name" id="userName">User</span>
+            <button id="logoutBtn" class="logout-btn">Logout</button>
+        </div>
+    </nav>
+
+    <!-- Notification Panel -->
+    <div id="notificationPanel" class="notification-panel hidden">
+        <div class="notification-header">
+            <h3 data-i18n="notifications">Notifications</h3>
+            <button onclick="markAllNotificationsRead()">Mark all read</button>
+        </div>
+        <div id="notificationsList" class="notifications-list">
+            <!-- Notifications will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Chatbot Container (for citizens) -->
+    <div id="chatbotContainer" class="chatbot-container hidden">
+        <div class="chatbot-header">
+            <h3 data-i18n="chatbot">Healthcare Assistant</h3>
+            <button id="closeChatbot">✖</button>
+        </div>
+        <div class="chatbot-messages" id="chatMessages"></div>
+        <div class="chatbot-input">
+            <input type="text" id="chatInput" placeholder="Ask about health schemes, first aid...">
+            <button id="sendChatMsg">Send</button>
+        </div>
+    </div>
+
+    <!-- Floating Chatbot Button (for citizens) -->
+    <button id="chatbotBtn" class="chatbot-float-btn hidden">💬</button>
+
+    <!-- Main Dashboard Container -->
+    <div class="dashboard-container">
+        
+        <!-- Shared Map Section (visible for all roles) -->
+        <div class="map-section">
+            <div id="map"></div>
+            
+            <!-- SOS Button (only visible for citizen) -->
+            <button id="sosButton" class="sos-button hidden">
+                <span class="sos-icon">🆘</span>
+                <span class="sos-text">EMERGENCY SOS</span>
+            </button>
+        </div>
+        
+        <!-- ========================================
+             CITIZEN DASHBOARD
+             ======================================== -->
+        <div id="citizenDashboard" class="role-dashboard hidden">
+            <div class="dashboard-layout">
+                <!-- Citizen Panel -->
+                <div class="side-panel">
+                    <h2 class="panel-title">Citizen Dashboard</h2>
+                    
+                    <div class="info-box">
+                        <p class="info-text">Need emergency assistance? Press the SOS button to request immediate help.</p>
+                    </div>
+
+                    <!-- Emergency Status -->
+                    <div id="citizenEmergencyStatus" class="hidden">
+                        <div class="status-card emergency-active">
+                            <h3>🚨 Emergency Active</h3>
+                            <div class="status-item">
+                                <span class="label">Emergency ID:</span>
+                                <span class="value" id="citizenEmergencyId">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">Status:</span>
+                                <span class="value status-live" id="citizenStatus">Requesting help...</span>
+                            </div>
+                        </div>
+
+                        <div class="status-card">
+                            <h3>🚑 Ambulance Details</h3>
+                            <div class="status-item">
+                                <span class="label">Ambulance:</span>
+                                <span class="value" id="citizenAmbulance">Searching...</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">ETA:</span>
+                                <span class="value highlight" id="citizenETA">Calculating...</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">Equipment:</span>
+                                <span class="value" id="citizenEquipment">-</span>
+                            </div>
+                        </div>
+
+                        <div class="status-card">
+                            <h3>🏥 Hospital Details</h3>
+                            <div class="status-item">
+                                <span class="label">Hospital:</span>
+                                <span class="value" id="citizenHospital">Pending...</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">Distance:</span>
+                                <span class="value" id="citizenHospitalDist">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Leaderboard Section -->
+                    <div class="status-card">
+                        <h3>🏆 <span data-i18n="leaderboard">Regional Leaderboard</span></h3>
+                        <div id="leaderboardList" class="leaderboard-list">
+                            <!-- Leaderboard entries will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Emergency History -->
+                    <div class="status-card">
+                        <h3>📋 <span data-i18n="history">Emergency History</span></h3>
+                        <div id="emergencyHistoryList" class="history-list">
+                            <!-- History will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================
+             AMBULANCE OPERATOR DASHBOARD
+             ======================================== -->
+        <div id="ambulanceDashboard" class="role-dashboard hidden">
+            <div class="dashboard-layout">
+                <div class="side-panel">
+                    <h2 class="panel-title">Ambulance Operator</h2>
+                    
+                    <!-- Status Toggle -->
+                    <div class="status-toggle-card">
+                        <h3>Your Status</h3>
+                        <div class="toggle-container">
+                            <button id="statusToggle" class="status-toggle-btn available">
+                                <span class="toggle-indicator"></span>
+                                <span class="toggle-label">Available</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Assigned Emergency -->
+                    <div id="ambulanceAssignment" class="hidden">
+                        <div class="status-card emergency-active">
+                            <h3>🚨 Emergency Assignment</h3>
+                            <div class="status-item">
+                                <span class="label">Emergency ID:</span>
+                                <span class="value" id="ambulanceEmergencyId">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">Patient Location:</span>
+                                <span class="value" id="ambulancePatientLoc">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">Distance:</span>
+                                <span class="value" id="ambulanceDistance">-</span>
+                            </div>
+                        </div>
+
+                        <div class="status-card">
+                            <h3>📍 Route Information</h3>
+                            <div class="status-item">
+                                <span class="label">Current Status:</span>
+                                <span class="value status-live" id="ambulanceRouteStatus">En route to patient</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">Destination Hospital:</span>
+                                <span class="value" id="ambulanceDestHospital">-</span>
+                            </div>
+                        </div>
+
+                        <div class="countdown-card">
+                            <div class="countdown-label">Arrival Countdown</div>
+                            <div class="countdown-timer" id="ambulanceCountdown">--:--</div>
+                        </div>
+                    </div>
+
+                    <div id="ambulanceIdle" class="info-box">
+                        <p class="info-text">Status: Available. Waiting for emergency assignment...</p>
+                    </div>
+                    
+                    <!-- Universal Emergency Overview -->
+                    <div id="ambulanceEmergencyOverview" class="hidden">
+                        <div class="status-card">
+                            <h3>📍 System Emergency Overview</h3>
+                            <div class="status-item">
+                                <span class="label">Emergency ID:</span>
+                                <span class="value" id="ambulanceOverviewEmergencyId">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">Ambulance:</span>
+                                <span class="value" id="ambulanceOverviewAmbulance">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">Hospital:</span>
+                                <span class="value" id="ambulanceOverviewHospital">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">Status:</span>
+                                <span class="value status-live" id="ambulanceOverviewStatus">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Emergency History -->
+                    <div class="status-card">
+                        <h3>📋 <span data-i18n="history">Mission History</span></h3>
+                        <div id="ambulanceHistoryList" class="history-list">
+                            <!-- History will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Map View -->
+                <div class="map-container">
+                    <div id="map"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================
+             TRAFFIC POLICE DASHBOARD
+             ======================================== -->
+        <div id="trafficDashboard" class="role-dashboard hidden">
+            <div class="dashboard-layout">
+                <div class="side-panel">
+                    <h2 class="panel-title">Traffic Police Control</h2>
+                    
+                    <!-- Alert Section -->
+                    <div id="trafficAlert" class="hidden">
+                        <div class="status-card alert-card">
+                            <h3>🚨 Emergency Route Alert</h3>
+                            <div class="status-item">
+                                <span class="label">Emergency ID:</span>
+                                <span class="value" id="trafficEmergencyId">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">Route:</span>
+                                <span class="value" id="trafficRoute">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">Your Position:</span>
+                                <span class="value" id="trafficPosition">Within corridor range</span>
+                            </div>
+                            
+                            <button id="trafficAcknowledgeBtn" class="acknowledge-btn">
+                                Acknowledge & Initiate Green Corridor
+                            </button>
+                            
+                            <div id="trafficCorridorStatus" class="corridor-status hidden">
+                                ✅ Green Corridor Initiated
+                            </div>
+                        </div>
+
+                        <div class="status-card">
+                            <h3>🚦 Junction ETA</h3>
+                            <div id="junctionList" class="junction-list">
+                                <div class="junction-item">
+                                    <span class="junction-name">Main Junction</span>
+                                    <span class="junction-eta">2 mins</span>
+                                </div>
+                                <div class="junction-item">
+                                    <span class="junction-name">Highway Exit</span>
+                                    <span class="junction-eta">5 mins</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="trafficIdle" class="info-box">
+                        <p class="info-text">No active emergency alerts. Monitoring traffic conditions...</p>
+                    </div>
+                    
+                    <!-- Universal Emergency Overview -->
+                    <div id="trafficEmergencyOverview" class="hidden">
+                        <div class="status-card">
+                            <h3>📍 System Emergency Overview</h3>
+                            <div class="status-item">
+                                <span class="label">Emergency ID:</span>
+                                <span class="value" id="trafficOverviewEmergencyId">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">Ambulance:</span>
+                                <span class="value" id="trafficOverviewAmbulance">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">Hospital:</span>
+                                <span class="value" id="trafficOverviewHospital">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">Status:</span>
+                                <span class="value status-live" id="trafficOverviewStatus">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alert History -->
+                    <div class="status-card">
+                        <h3>📋 Recent Alerts</h3>
+                        <div id="trafficHistory" class="alert-history">
+                            <p class="empty-state">No alerts today</p>
+                        </div>
+                    </div>
+
+                    <!-- Emergency History -->
+                    <div class="status-card">
+                        <h3>📋 <span data-i18n="history">Intervention History</span></h3>
+                        <div id="trafficHistoryList" class="history-list">
+                            <!-- History will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================
+             HOSPITAL ADMIN DASHBOARD
+             ======================================== -->
+        <div id="hospitalDashboard" class="role-dashboard hidden">
+            <div class="dashboard-layout">
+                <div class="side-panel">
+                    <h2 class="panel-title">Hospital Administration</h2>
+                    
+                    <!-- Bed Management -->
+                    <div class="status-card">
+                        <h3>🛏️ Bed Availability</h3>
+                        <div class="bed-counter">
+                            <div class="bed-count-display">
+                                <span class="bed-count" id="hospitalBedCount">12</span>
+                                <span class="bed-label">Available Beds</span>
+                            </div>
+                            <div class="bed-controls">
+                                <button id="bedDecreaseBtn" class="bed-btn">-</button>
+                                <button id="bedIncreaseBtn" class="bed-btn">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Universal Emergency Overview -->
+                    <div id="hospitalEmergencyOverview" class="hidden">
+                        <div class="status-card">
+                            <h3>📍 System Emergency Overview</h3>
+                            <div class="status-item">
+                                <span class="label">Emergency ID:</span>
+                                <span class="value" id="hospitalOverviewEmergencyId">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">Ambulance:</span>
+                                <span class="value" id="hospitalOverviewAmbulance">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">Patient Location:</span>
+                                <span class="value" id="hospitalOverviewLocation">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">Status:</span>
+                                <span class="value status-live" id="hospitalOverviewStatus">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Incoming Ambulance Alert -->
+                    <div id="hospitalIncoming" class="hidden">
+                        <div class="status-card emergency-active">
+                            <h3>🚑 Incoming Ambulance</h3>
+                            <div class="status-item">
+                                <span class="label">Emergency ID:</span>
+                                <span class="value" id="hospitalEmergencyId">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">Ambulance:</span>
+                                <span class="value" id="hospitalAmbulance">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">ETA:</span>
+                                <span class="value highlight" id="hospitalETA">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">Patient Status:</span>
+                                <span class="value" id="hospitalPatientStatus">Emergency</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Emergency Case List -->
+                    <div class="status-card">
+                        <h3>📋 Emergency Cases Today</h3>
+                        <div id="hospitalCaseList" class="case-list">
+                            <p class="empty-state">No cases today</p>
+                        </div>
+                    </div>
+
+                    <!-- Emergency History -->
+                    <div class="status-card">
+                        <h3>📋 <span data-i18n="history">Patient History</span></h3>
+                        <div id="hospitalHistoryList" class="history-list">
+                            <!-- History will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================
+             CONTROL ROOM DASHBOARD
+             ======================================== -->
+        <div id="controlDashboard" class="role-dashboard hidden">
+            <div class="dashboard-layout">
+                <div class="side-panel control-panel">
+                    <h2 class="panel-title">Control Room</h2>
+                    
+                    <!-- System Stats -->
+                    <div class="stats-grid">
+                        <div class="stat-card-small">
+                            <div class="stat-icon">🚑</div>
+                            <div class="stat-data">
+                                <span class="stat-value" id="controlAmbulances">5</span>
+                                <span class="stat-label">Available</span>
+                            </div>
+                        </div>
+                        <div class="stat-card-small">
+                            <div class="stat-icon">🏥</div>
+                            <div class="stat-data">
+                                <span class="stat-value" id="controlHospitals">3</span>
+                                <span class="stat-label">Online</span>
+                            </div>
+                        </div>
+                        <div class="stat-card-small">
+                            <div class="stat-icon">👮</div>
+                            <div class="stat-data">
+                                <span class="stat-value" id="controlTraffic">5</span>
+                                <span class="stat-label">Active</span>
+                            </div>
+                        </div>
+                        <div class="stat-card-small">
+                            <div class="stat-icon">🚨</div>
+                            <div class="stat-data">
+                                <span class="stat-value" id="controlEmergencies">0</span>
+                                <span class="stat-label">Active</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Emergencies -->
+                    <div class="status-card">
+                        <h3>🚨 Active Emergencies</h3>
+                        <div id="controlEmergencyList" class="emergency-list">
+                            <p class="empty-state">No active emergencies</p>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Panel -->
+                    <div class="status-card">
+                        <h3>📊 Analytics</h3>
+                        <div class="analytics-grid">
+                            <div class="analytics-item">
+                                <span class="analytics-label">Avg Response Time</span>
+                                <span class="analytics-value" id="controlAvgResponse">--</span>
+                            </div>
+                            <div class="analytics-item">
+                                <span class="analytics-label">Total Emergencies</span>
+                                <span class="analytics-value" id="controlTotalEmerg">0</span>
+                            </div>
+                            <div class="analytics-item">
+                                <span class="analytics-label">Success Rate</span>
+                                <span class="analytics-value" id="controlSuccessRate">100%</span>
+                            </div>
+                            <div class="analytics-item">
+                                <span class="analytics-label">Green Corridors</span>
+                                <span class="analytics-value" id="controlCorridors">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Controls -->
+                    <button id="controlResetBtn" class="reset-btn">Reset System</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="notificationToast" class="notification-toast hidden"></div>
+
+    <!-- Main Script (must load before Google Maps) -->
+    <script src="script.js"></script>
+    
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBZ6WwNyj-TOdDec2aYFv4XnXc7hkIvz2w&callback=initDashboard&loading=async" async defer></script>
+</body>
+</html>

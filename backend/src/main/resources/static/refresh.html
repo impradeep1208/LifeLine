@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Force Refresh - ERO</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+</head>
+<body style="font-family: Arial; padding: 40px; background: #1a1a2e; color: #fff;">
+    <h1>🔄 Cache Clear Helper</h1>
+    <p>This page forces your browser to reload all JavaScript files.</p>
+    <div style="background: rgba(231,76,60,0.2); padding: 20px; border-radius: 10px; margin: 20px 0;">
+        <h2>Instructions:</h2>
+        <ol style="line-height: 2;">
+            <li>Press <strong>Ctrl + Shift + R</strong> RIGHT NOW</li>
+            <li>After refresh, click the button below</li>
+        </ol>
+    </div>
+    <button onclick="goToDashboard()" style="padding: 15px 30px; font-size: 18px; background: #e74c3c; color: white; border: none; border-radius: 8px; cursor: pointer;">
+        ✅ Go to Dashboard (with no cache)
+    </button>
+    
+    <script>
+        function goToDashboard() {
+            // Add timestamp to force no-cache
+            const timestamp = new Date().getTime();
+            window.location.href = `dashboard.html?v=${timestamp}`;
+        }
+        
+        // Auto-redirect after 3 seconds if user doesn't click
+        setTimeout(() => {
+            console.log('Auto-redirecting...');
+            goToDashboard();
+        }, 3000);
+    </script>
+    
+    <div style="margin-top: 40px; color: #7f8c8d;">
+        <p>Auto-redirecting in 3 seconds...</p>
+        <p style="font-size: 12px;">If issues persist, open in Incognito mode: <strong>Ctrl + Shift + N</strong></p>
+    </div>
+</body>
+</html>
