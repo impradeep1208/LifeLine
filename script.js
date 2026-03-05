@@ -800,6 +800,23 @@ async function initializeDashboard() {
     }
     
     const user = JSON.parse(userData);
+    
+    // Normalize role to lowercase format (fix for old uppercase roles)
+    const roleToDashboard = {
+        'CITIZEN': 'citizen',
+        'AMBULANCE_DRIVER': 'ambulance',
+        'HOSPITAL_STAFF': 'hospital',
+        'TRAFFIC_POLICE': 'traffic',
+        'ADMIN': 'control'
+    };
+    
+    // Convert uppercase roles to lowercase dashboard format
+    const normalizedRole = roleToDashboard[user.role] || user.role.toLowerCase();
+    user.role = normalizedRole;
+    
+    // Update localStorage with normalized role
+    localStorage.setItem('eroUser', JSON.stringify(user));
+    
     currentUserRole = user.role;
     authToken = user.token;
     currentUserId = user.userId;
