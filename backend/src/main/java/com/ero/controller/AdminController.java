@@ -203,12 +203,25 @@ public class AdminController {
                 "AND created_at < NOW() - INTERVAL '2 hours'"
             );
             
+            // Reset ambulances that reference COMPLETED emergencies
+            int ambulancesReset = jdbcTemplate.update(
+                "UPDATE ambulances SET status = 'AVAILABLE', current_emergency_id = NULL, is_available = true " +
+                "WHERE current_emergency_id IN (SELECT id FROM emergencies WHERE status = 'COMPLETED')"
+            );
+            
+            // Clear hospital bed assignments for COMPLETED emergencies
+            int bedsCleared = jdbcTemplate.update(
+                "UPDATE emergencies SET assigned_bed_number = NULL WHERE status = 'COMPLETED' AND assigned_bed_number IS NOT NULL"
+            );
+            
             Map<String, Object> result = new HashMap<>();
             result.put("success", true);
             result.put("deliveredToCompleted", deliveredCleaned);
             result.put("oldEmergenciesCleaned", oldCleaned);
             result.put("totalCleaned", deliveredCleaned + oldCleaned);
-            result.put("message", "Cleaned up " + (deliveredCleaned + oldCleaned) + " old emergencies");
+            result.put("ambulancesReset", ambulancesReset);
+            result.put("bedsCleared", bedsCleared);
+            result.put("message", "Cleaned up " + (deliveredCleaned + oldCleaned) + " old emergencies and reset " + ambulancesReset + " ambulances");
             
             return ResponseEntity.ok(result);
             
@@ -223,5 +236,33 @@ public class AdminController {
     @GetMapping("/cleanup-old-emergencies")
     public ResponseEntity<?> cleanupOldEmergenciesGet() {
         return cleanupOldEmergencies();
+    }
+    
+    @PostMapping("/reset-ambulances")
+    public ResponseEntity<?> resetAmbulances() {
+        try {
+            // Reset all ambulances to AVAILABLE status and clear currentEmergencyId
+            int updated = jdbcTemplate.update(
+                "UPDATE ambulances SET status = 'AVAILABLE', current_emergency_id = NULL, is_available = true"
+            );
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", true);
+            result.put("ambulancesReset", updated);
+            result.put("message", "Reset " + updated + " ambulances to AVAILABLE status");
+            
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(500).body(error);
+        }
+    }
+    
+    @GetMapping("/reset-ambulances")
+    public ResponseEntity<?> resetAmbulancesGet() {
+        return resetAmbulances();
     }
 }
