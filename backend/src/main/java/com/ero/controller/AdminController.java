@@ -195,11 +195,12 @@ public class AdminController {
                 "UPDATE emergencies SET status = 'COMPLETED' WHERE status = 'DELIVERED'"
             );
             
-            // Mark emergencies older than 24 hours as COMPLETED if still active
+            // Mark emergencies older than 2 hours as COMPLETED if still active
+            // This is more aggressive for testing and prevents old emergencies from lingering
             int oldCleaned = jdbcTemplate.update(
                 "UPDATE emergencies SET status = 'COMPLETED' " +
                 "WHERE status IN ('CREATED', 'DISPATCHED', 'EN_ROUTE', 'ARRIVED', 'PATIENT_LOADED', 'TRANSPORTING') " +
-                "AND created_at < NOW() - INTERVAL '24 hours'"
+                "AND created_at < NOW() - INTERVAL '2 hours'"
             );
             
             Map<String, Object> result = new HashMap<>();
